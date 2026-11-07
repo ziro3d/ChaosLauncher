@@ -1,0 +1,22 @@
+# Visual Studio / .vs
+.vs/
+*.user
+*.suo
+*.cache
+*.db
+
+# Build folders
+[Bb]in/
+[Oo]bj/
+[Rr]elease/
+[Dd]ebug/
+
+# Publish results
+[Pp]ublish/
+*.publishsettings
+
+# VS Code (если вдруг открываешь)
+.vscode/
+
+# Launcher settings / local configs (чтобы настройки не перезаписывались при коммите)
+launcher_settings.json
