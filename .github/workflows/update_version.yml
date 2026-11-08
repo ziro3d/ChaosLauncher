@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          ref: main # Принудительно берем ветку main, избегая detached HEAD
 
       - name: Update version.json
         run: |
@@ -44,3 +46,4 @@ jobs:
         with:
           commit_message: "auto: update version.json for release ${{ github.event.release.tag_name }}"
           file_pattern: version.json
+          branch: main
