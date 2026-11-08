@@ -1,0 +1,49 @@
+name: Auto Update version.json on Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-version-json:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Update version.json
+        run: |
+          # Получаем чистый номер версии без буквы 'v' (из v1.0.2 делает 1.0.2)
+          TAG_NAME="${{ github.event.release.tag_name }}"
+          VERSION="${TAG_NAME#v}"
+          
+          # Находим ссылку на загруженный zip-архив из assets релиза
+          DOWNLOAD_URL="${{ github.event.release.assets[0].browser_download_url }}"
+          
+          # Получаем описание релиза (Changelog)
+          BODY="${{ github.event.release.body }}"
+          
+          # Если описание пустое — ставим стандартное
+          if [ -z "$BODY" ]; then
+            BODY="• Release $TAG_NAME updates"
+          fi
+
+          # Формируем валидный JSON с экранированием переносов строк
+          cat <<EOF > version.json
+          {
+            "Version": "$VERSION",
+            "DownloadUrl": "$DOWNLOAD_URL",
+            "Changelog": $(echo "$BODY" | jq -R -s '.')
+          }
+          EOF
+
+      - name: Commit and Push version.json
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add version.json
+          git commit -m "auto: update version.json for release ${{ github.event.release.tag_name }}" || exit 0
+          git push
