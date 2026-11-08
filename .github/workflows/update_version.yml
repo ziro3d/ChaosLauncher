@@ -14,7 +14,11 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          ref: main # Принудительно берем ветку main, избегая detached HEAD
+          fetch-depth: 0
+
+      - name: Switch to main branch
+        run: |
+          git checkout main || git checkout -b main
 
       - name: Update version.json
         run: |
