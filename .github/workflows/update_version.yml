@@ -11,32 +11,22 @@ jobs:
       contents: write
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout main branch
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-
-      - name: Switch to main branch
-        run: |
-          git checkout main || git checkout -b main
+          ref: main
 
       - name: Update version.json
         run: |
-          # Получаем чистый номер версии без буквы 'v'
           TAG_NAME="${{ github.event.release.tag_name }}"
           VERSION="${TAG_NAME#v}"
-          
-          # Находим ссылку на загруженный zip-архив
           DOWNLOAD_URL="${{ github.event.release.assets[0].browser_download_url }}"
-          
-          # Получаем описание релиза (Changelog)
           BODY="${{ github.event.release.body }}"
           
           if [ -z "$BODY" ]; then
             BODY="• Release $TAG_NAME updates"
           fi
 
-          # Формируем валидный JSON
           cat <<EOF > version.json
           {
             "Version": "$VERSION",
@@ -45,9 +35,10 @@ jobs:
           }
           EOF
 
-      - name: Commit and Push version.json
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "auto: update version.json for release ${{ github.event.release.tag_name }}"
-          file_pattern: version.json
-          branch: main
+      - name: Commit and Push to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add version.json
+          git commit -m "auto: update version.json for release ${{ github.event.release.tag_name }}" || exit 0
+          git push origin main
